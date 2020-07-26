@@ -1,38 +1,16 @@
-export default `
-type User {
-    id: Int!
-    email: String!
-    username: String!
-    teams:[Team!]!
-}
-type Channel {
-    id: Int!,
-    name: String!
-    public: Boolean!
-    teams:[Team!]!  
-    messages:[Message!]!  
-    users: [User!]!
-}
-type Team {
-    id: Int!,
-    name: String!,
-    members:[User!]!
-    owner: User!
-    channels:[Channel!]
-}
-type Message {
-    id: Int!
-    text: String!
-    user: User!
+import { gql } from "apollo-server-express"
 
-}
-type Query {
-    hello: String!
-    user(id: Int!): User!
-    users: [User!]!
+import channel from "./channel"
+import user from "./user"
+import message from "./message"
+import team from "./team"
 
-}
-type Mutation{
-    createUser(email: String!, username:String!, password: String!): User!
+
+const basicResponse = gql`
+type BasicResponse {
+    success: Boolean!
+    message: String
 }
 `
+
+export default [channel, user, message, team, basicResponse]

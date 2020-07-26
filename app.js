@@ -1,14 +1,20 @@
+//@ts-check
 import express from 'express'
 import bodyParser from 'body-parser'
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer, makeExecutableSchema } from 'apollo-server-express'
 
-import typeDefs from './src/schemas'
-import resolvers from './src/resolvers'
 import models from './models'
+import typeDefs from "./src/schemas"
+import resolvers from "./src/resolvers"
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers
+})
+
 
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+  schema,
   context: {
     models,
   },
@@ -21,7 +27,7 @@ app.use(bodyParser.json())
 
 server.applyMiddleware({ app })
 
-models.sequelize.sync({ force: false }).then(() => {
+models.sequelize.sync({ force: false, logging: false }).then(() => {
   app.listen(PORT, () =>
     console.log(`Server started at ${PORT}${server.graphqlPath}`)
   )
