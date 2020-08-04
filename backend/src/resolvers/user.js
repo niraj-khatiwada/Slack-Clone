@@ -68,7 +68,6 @@ export default {
           SECRET,
           refreshTokenSecret
         )
-        console.log(token, refreshToken)
         return {
           success: true,
           message: 'Successfully logged in',

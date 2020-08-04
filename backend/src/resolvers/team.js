@@ -20,11 +20,11 @@ export default {
     },
   },
   Mutation: {
-    async createTeam(parent, { name, owner }, { models }, info) {
+    async createTeam(parent, { name }, { models, user: _user }, info) {
       try {
         const user = await models.User.findOne({
           where: {
-            id: owner,
+            id: _user,
           },
         })
         if (!user) {
@@ -33,12 +33,13 @@ export default {
             errors: [
               {
                 path: 'owner',
-                message: `No user exists for user id ${owner} supplied for owner`,
+                message: `No user exists for user id ${_user} supplied for owner`,
               },
             ],
           }
         }
-        const team = await models.Team.create({ name, owner })
+
+        const team = await models.Team.create({ name, owner: _user })
         return {
           success: true,
           message: `Successfully created team ${team.name}`,
