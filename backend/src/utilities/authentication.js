@@ -1,4 +1,5 @@
 import jsonwebtoken from 'jsonwebtoken'
+import { raw } from 'body-parser'
 
 export const createToken = async (user, SECRET, SECRET2) => {
   const token = jsonwebtoken.sign(
@@ -30,7 +31,6 @@ export const refreshToken = async (
   let userID
   try {
     const { user } = jsonwebtoken.decode(refreshToken)
-    console.log('decode', user)
     userID = user
   } catch (error) {
     return
@@ -38,7 +38,7 @@ export const refreshToken = async (
   if (!userID) {
     return
   }
-  const user = await models.User.findOne({ where: { id: userID } })
+  const user = await models.User.findOne({ where: { id: userID }, raw: true })
   if (!user) {
     return
   }
@@ -48,18 +48,16 @@ export const refreshToken = async (
     return
   }
   try {
-    const { newToken, newRefreshToken } = await createToken(
-      user,
-      SECRET,
-      SECRET2
-    )
+    const {
+      token: newToken,
+      refreshToken: newRefreshToken,
+    } = await createToken(user, SECRET, SECRET2)
     return {
       token: newToken,
       refreshToken: newRefreshToken,
       user,
     }
   } catch (error) {
-    console.log('-----errrrrr----', error)
     return
   }
 }

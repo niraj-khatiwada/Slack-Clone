@@ -1,37 +1,42 @@
 import React from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Switch, Redirect } from 'react-router-dom'
+import { ApolloProvider } from '@apollo/react-hooks'
 
-import { ApolloClient, InMemoryCache } from '@apollo/client'
-import { setContext } from '@apollo/client/link/context'
-import { ApolloProvider, createHttpLink } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/react-hooks'
+import { checkAuth } from './apollo/queries/user'
 
-import Home from './components/Home.component'
-import Login from './components/Login.component'
+import client from './apollo'
 
-const httpLink = createHttpLink({
-  uri: 'http://localhost:5000/graphql',
-})
+import Login from './components/Login'
+import SignUp from './components/Register'
+import Home from './components/Home'
+import CreateTeam from './components/Teams/CreateTeam.component'
 
-const authorizationLink = setContext((_, { headers }) => {
+const ProtectedRoute = ({ component: Component, ...otherProps }) => {
   const token = localStorage.getItem('token')
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  }
-})
-
-const client = new ApolloClient({
-  link: authorizationLink.concat(httpLink),
-  cache: new InMemoryCache(),
-})
+  const refreshToken = localStorage.getItem('refreshToken')
+  return (
+    <Route
+      {...otherProps}
+      render={(props) =>
+        token || refreshToken ? (
+          <Component {...props} />
+        ) : (
+          <Redirect to={{ pathname: '/login' }} />
+        )
+      }
+    />
+  )
+}
 
 const App = () => (
   <ApolloProvider client={client}>
     <Switch>
-      <Route exact path="/" component={Home} />
       <Route exact path="/login" component={Login} />
+      <Route exact path="/signup" component={SignUp} />
+      <ProtectedRoute exact path="/" component={Home} />
+      <ProtectedRoute exact path="/createTeam" component={CreateTeam} />
+      <Route render={() => <h1>Page not found</h1>} />
     </Switch>
   </ApolloProvider>
 )

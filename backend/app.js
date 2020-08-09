@@ -28,13 +28,11 @@ app.use(cors())
 
 app.use(async (req, res, next) => {
   const token = req.headers['authorization']
-  console.log('----Token----', req.headers)
-  if (token) {
+  if (!!token) {
     try {
       const { user } = jwt.verify(token.replace('Bearer ', ''), SECRET)
       req.user = user
     } catch (error) {
-      console.log('---jwt verify error---', error)
       const refreshToken = req.headers['x-refresh-token']
       const newToken = await refreshExpiredToken(
         token,
@@ -43,10 +41,14 @@ app.use(async (req, res, next) => {
         SECRET,
         SECRET2
       )
-      if (newToken) {
-        res.set('authorization', `Bearer ${newToken.token}`)
-        res.set('x-refresh-token', newToken.refreshToken)
+      if (!!newToken.refreshToken && !!newToken.token) {
+        res.set({
+          'access-control-expose-headers': '*',
+          'x-token': newToken.token,
+          'x-refresh-token': newToken.refreshToken,
+        })
       }
+      req.user = newToken.user
     }
   }
   next()
@@ -54,11 +56,11 @@ app.use(async (req, res, next) => {
 
 const server = new ApolloServer({
   schema,
-  context: (req) => ({
+  context: ({ req }) => ({
     models,
     SECRET,
     SECRET2,
-    user: req.user,
+    _user: req.user,
   }),
 })
 

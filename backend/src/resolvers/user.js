@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt'
 import { Op } from 'sequelize'
+import jwt from 'jsonwebtoken'
 
 import { createToken } from '../utilities/authentication'
-
 import { formatError } from '../utilities/error'
 
 export default {
@@ -12,6 +12,23 @@ export default {
     },
     users(parent, args, { models }, info) {
       return models.User.findAll()
+    },
+    isAuthenticated(parent, { token, refreshToken }, { models }, info) {
+      try {
+        const { user } = jwt.decode(token)
+        console.log('----user----', user)
+        return {
+          success: true,
+          message: 'AUTHENTICATED',
+        }
+      } catch (error) {
+        console.log('---error', error)
+        return {
+          success: false,
+          message: 'UNAUTHENTICATED',
+          errors: formatError(error, models),
+        }
+      }
     },
   },
   Mutation: {
@@ -35,7 +52,7 @@ export default {
         }
       }
     },
-    async login(parent, args, { models, SECRET, SECRET2 }, info) {
+    async login(parent, args, { models, user, SECRET, SECRET2 }, info) {
       const { emailOrUsername, password } = args
       try {
         const user = await models.User.findOne({

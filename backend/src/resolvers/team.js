@@ -1,4 +1,5 @@
 import { formatError } from '../utilities/error'
+import { requiresAuth } from '../utilities/permissions'
 
 export default {
   Query: {
@@ -20,34 +21,37 @@ export default {
     },
   },
   Mutation: {
-    async createTeam(parent, { name }, { models, user: _user }, info) {
-      try {
-        const user = await models.User.findOne({
-          where: {
-            id: _user,
-          },
-        })
-        if (!user) {
-          return {
-            success: false,
-            errors: [
-              {
-                path: 'owner',
-                message: `No user exists for user id ${_user} supplied for owner`,
-              },
-            ],
+    createTeam: requiresAuth.createResolver(
+      async (parent, { name }, { models, _user }, info) => {
+        console.log('Logged in user', _user)
+        try {
+          const user = await models.User.findOne({
+            where: {
+              id: _user,
+            },
+          })
+          if (!user) {
+            return {
+              success: false,
+              errors: [
+                {
+                  path: 'owner',
+                  message: `No user exists for user id ${_user} supplied for owner`,
+                },
+              ],
+            }
           }
-        }
 
-        const team = await models.Team.create({ name, owner: _user })
-        return {
-          success: true,
-          message: `Successfully created team ${team.name}`,
+          const team = await models.Team.create({ name, owner: _user })
+          return {
+            success: true,
+            message: `Successfully created team ${team.name}`,
+          }
+        } catch (error) {
+          console.log(error)
+          return { success: false, errors: formatError(error, models) }
         }
-      } catch (error) {
-        console.log(error)
-        return { success: false, errors: formatError(error, models) }
       }
-    },
+    ),
   },
 }

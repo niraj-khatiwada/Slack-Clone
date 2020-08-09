@@ -4,6 +4,7 @@ export default gql`
   type Query {
     user(id: Int!): User
     users: [User!]!
+    isAuthenticated(token: String!, refreshToken: String!): BasicResponse!
   }
   type Mutation {
     createUser(
