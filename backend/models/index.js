@@ -1,9 +1,22 @@
 import { Sequelize } from 'sequelize'
+import { config } from 'dotenv'
 
-const sequelize = new Sequelize('slack-clone', 'postgres', '_sn0r13xpl', {
+const env = config()
+
+const sequelize = new Sequelize(process.env.URI, {
   dialect: 'postgres',
+  protocol: 'postgres',
   define: {
     underscored: true,
+  },
+  port: 5432,
+  logging: console.log,
+  host: process.env.HOST,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
   },
 })
 

@@ -37,7 +37,7 @@ export default {
       try {
         const user = await models.User.create({
           email,
-          username,
+          username: username.toLowerCase(),
           password,
         })
         return {
@@ -45,7 +45,6 @@ export default {
           message: `Successfully created user ${user.username}.`,
         }
       } catch (error) {
-        // console.log(error)
         return {
           success: false,
           errors: formatError(error, models),

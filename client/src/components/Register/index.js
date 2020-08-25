@@ -1,81 +1,62 @@
+// @ts-check
 import React from 'react'
-import { useMutation, gql } from '@apollo/react-hooks'
 import { useHistory, Link } from 'react-router-dom'
 
-import { Form, Button } from 'react-bootstrap'
+import { useMutation } from '@apollo/react-hooks'
+import { SIGNUP } from '../../apollo/mutations/user'
+
+import { Form, Button, Spinner } from 'react-bootstrap'
 import { FormContainer, CustomBForm, TitleContainer } from '../Login/styles'
 import { Hero } from '../../assets/styles'
 
+import { useInput } from '../../tools/hooks'
+
 export default function Login() {
-  const [values, setValues] = React.useState({
-    email: '',
-    password: '',
-    username: '',
-  })
+  const { values, setValues, handleChange } = useInput([
+    'email',
+    'password',
+    'username',
+  ])
   const history = useHistory()
 
-  const [login, { loading }] = useMutation(
-    gql`
-      mutation($emailOrUsername: String!, $password: String!) {
-        login(emailOrUsername: $emailOrUsername, password: $password) {
-          success
-          message
-          errors {
-            path
-            message
-          }
-          token
-          refreshToken
-        }
-      }
-    `,
-    {
-      update(_, { data }) {
-        console.log('data', data)
-        if (data.login.success) {
-          localStorage.setItem('token', data.login.token)
-          localStorage.setItem('refreshToken', data.login.refreshToken)
-          history.push('/createTeam')
-        }
-      },
-      variables: {
-        emailOrUsername: values.email,
-        password: values.password,
-      },
-      onError(error) {
-        console.log('--error---', { error })
-      },
-    }
-  )
-  console.log(values)
-  const handleChange = (evt) => {
-    evt.preventDefault()
-    setValues({ ...values, [evt.target.name]: evt.target.value })
-  }
+  const [signUp, { loading }] = useMutation(SIGNUP, {
+    variables: {
+      email: values.email,
+      username: values.username,
+      password: values.password,
+    },
+    update(_, { data }) {
+      console.log('data', data)
+    },
+    onError(error) {
+      console.log('--error---', { error })
+    },
+  })
+
   return (
     <Hero>
       <FormContainer>
         <CustomBForm
           onSubmit={(evt) => {
             evt.preventDefault()
-            login()
+            signUp()
           }}
         >
           <TitleContainer>
             <h1>SignUp</h1>
             <Link to="/login">Login</Link>
           </TitleContainer>
-          <Form.Group controlId="formBasicEmail">
+          <Form.Group controlId="signUpEmail">
             <Form.Label>Email</Form.Label>
             <Form.Control
-              type="text"
+              type="email"
               placeholder="Enter email "
               value={values.email}
               onChange={handleChange}
               name="email"
             />
           </Form.Group>
-          <Form.Group controlId="formBasicEmail">
+          <Form.Group controlId="signUpUsername">
             <Form.Label> Username</Form.Label>
             <Form.Control
               type="text"
@@ -86,7 +67,7 @@ export default function Login() {
             />
           </Form.Group>
 
-          <Form.Group controlId="formBasicPassword">
+          <Form.Group controlId="signUpPassword">
             <Form.Label>Password</Form.Label>
             <Form.Control
               type="password"
@@ -96,8 +77,8 @@ export default function Login() {
               name="password"
             />
           </Form.Group>
-          <Button variant="info" type="submit">
-            Submit
+          <Button variant="info" type="submit" style={{ minWidth: '100px' }}>
+            {!loading ? 'Submit' : <Spinner size="sm" animation="border" />}
           </Button>
         </CustomBForm>
       </FormContainer>

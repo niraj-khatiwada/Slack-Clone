@@ -3,11 +3,7 @@ import React from 'react'
 const useInput = (inputArray) => {
   const [values, setValues] = React.useState(
     inputArray.reduce((accumulator, currVal) => {
-      if (!accumulator[currVal]) {
-        accumulator[currVal] = ''
-      } else {
-        accumulator[currVal] = currVal
-      }
+      accumulator[currVal] = ''
       return accumulator
     }, {})
   )
@@ -15,7 +11,7 @@ const useInput = (inputArray) => {
     setValues({ ...values, [evt.target.name]: evt.target.value })
   }
   console.log(values)
-  return [values, setValues, handleChange]
+  return { values, setValues, handleChange }
 }
 
 export { useInput }

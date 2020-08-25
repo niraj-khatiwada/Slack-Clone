@@ -1,6 +1,8 @@
 import React from 'react'
-import { useMutation, gql } from '@apollo/react-hooks'
 import { useHistory, Link } from 'react-router-dom'
+
+import { useMutation } from '@apollo/react-hooks'
+import { LOGIN } from '../../apollo/mutations/user'
 
 import { Form, Button, Spinner } from 'react-bootstrap'
 import { FormContainer, CustomBForm, TitleContainer } from './styles'
@@ -19,41 +21,25 @@ function Login({ authData }) {
     !!authData && authData?.isAuthenticated?.success && history.push('/')
   }, [authData])
 
-  const [values, setValues, handleChange] = useInput(['email', 'password'])
+  const { values, handleChange } = useInput(['email', 'password'])
 
-  const [login, { loading }] = useMutation(
-    gql`
-      mutation($emailOrUsername: String!, $password: String!) {
-        login(emailOrUsername: $emailOrUsername, password: $password) {
-          success
-          message
-          errors {
-            path
-            message
-          }
-          token
-          refreshToken
-        }
+  const [login, { loading }] = useMutation(LOGIN, {
+    variables: {
+      emailOrUsername: values.email,
+      password: values.password,
+    },
+    update(_, { data }) {
+      console.log('data', data)
+      if (data.login.success) {
+        localStorage.setItem('token', data.login.token)
+        localStorage.setItem('refreshToken', data.login.refreshToken)
+        history.push('/')
       }
-    `,
-    {
-      update(_, { data }) {
-        console.log('data', data)
-        if (data.login.success) {
-          localStorage.setItem('token', data.login.token)
-          localStorage.setItem('refreshToken', data.login.refreshToken)
-          history.push('/')
-        }
-      },
-      variables: {
-        emailOrUsername: values.email,
-        password: values.password,
-      },
-      onError(error) {
-        console.log('--error---', { error })
-      },
-    }
-  )
+    },
+    onError(error) {
+      console.log('--error---', { error })
+    },
+  })
 
   return (
     <Hero>
